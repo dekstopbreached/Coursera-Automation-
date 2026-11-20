@@ -1,0 +1,111 @@
+# Coursera Playwright Automation
+
+Steps to set up and run the Coursera automation workflow.
+
+## 1. Clone the Repository
+
+Clone the repository and enter the project directory by running the following commands in your terminal:
+
+```bash
+git clone https://github.com/dheereshag/coursera.git
+cd coursera
+```
+
+## 2. Install Dependencies
+
+> [!IMPORTANT]
+> **`uv` is required**: This project relies on [`uv`](https://docs.astral.sh/uv/) for fast package resolution and virtual environment management.
+>
+> Install `uv` before proceeding by running the command for your platform in your terminal:
+> - **macOS / Linux**:
+>   ```bash
+>   curl -LsSf https://astral.sh/uv/install.sh | sh
+>   ```
+> - **Windows (PowerShell)**:
+>   ```powershell
+>   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+>   ```
+
+Ensure Python $\ge 3.14$ and `uv` are installed, then install dependencies and Playwright Chromium by running in your terminal:
+
+```bash
+uv sync
+uv run playwright install chromium
+```
+
+## 3. Configuration
+
+Create your `.env` configuration from the example template by running in your terminal:
+
+```bash
+cp .env.example .env
+```
+
+Configure global settings and API keys in `.env`. You can create an API key on the [openrouter.ai](https://openrouter.ai) website at [openrouter.ai/keys](https://openrouter.ai/keys).
+
+By default, `.env.example` is configured with **free tier models** so you can get started immediately with a free OpenRouter key:
+
+```ini
+OPENROUTER_API_KEY="sk-or-v1-your-free-openrouter-key"
+# Free tier models (Default)
+OPENROUTER_MODEL="dots-studio/dots-3-note-preview:free"
+OPENROUTER_FALLBACK_MODEL="qwen/qwen3.8-27b:free"
+```
+
+#### Optional: For Premium / Paid OpenRouter Accounts
+If you have a paid OpenRouter account with credits and want higher performance:
+
+```ini
+OPENROUTER_API_KEY="sk-or-v1-your-paid-openrouter-key"
+OPENROUTER_MODEL="deepseek/deepseek-v4.1-flash"
+OPENROUTER_FALLBACK_MODEL="z-ai/glm-5.3-flash"
+```
+
+### Course Instances Configuration (`instances.py`)
+
+Create your instances file from the template by running in your terminal:
+
+```bash
+cp instances.example.py instances.py
+```
+
+Define your Coursera accounts, passwords, and courses in `instances.py`:
+
+```python
+from coursera_automation.instances import InstanceConfig
+
+INSTANCES: list[InstanceConfig] = [
+    InstanceConfig(
+        email="your_email@example.com",
+        password="your_password",
+        course_url="https://www.coursera.org/specializations/your-course-url",
+        legal_name="Your Real Legal Name",
+        headless=False,
+        max_items=50,
+    ),
+]
+```
+
+> [!NOTE]
+> **Legal Name Validation**: `legal_name` is required for Coursera Honor Code quiz submissions and must be set to your actual name (cannot be left as `"Your Legal Name"` or empty) to pass startup validation.
+
+You can define multiple instances to run concurrent browser sessions in parallel, or easily comment out instances using `#`.
+
+## 4. Run Automation
+
+Execute the automation runner by running in your terminal:
+
+```bash
+uv run python -m coursera_automation.main
+```
+
+> [!TIP]
+> **Sleep Prevention**: The runner automatically prevents system and display sleep while running (using `caffeinate` on macOS and `kernel32.SetThreadExecutionState` with Away Mode on Windows).
+> - **macOS Laptops**: Keep the lid open (or connected to power and an external display). Closing the MacBook lid triggers hardware clamshell sleep that cannot be overridden by software assertions.
+
+> **Video Playback Speed**: Videos are muted and played at up to **16×** speed. The actual rate and course completion tracking may depend on the browser and Coursera's player.
+
+
+---
+
+For architectural details, sequence diagrams, and module breakdowns, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
